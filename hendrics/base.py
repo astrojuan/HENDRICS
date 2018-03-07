@@ -9,6 +9,14 @@ import logging
 import sys
 
 
+try:
+    from numba import jit
+except:
+    def jit(fun):
+        """Dummy decorator in case jit cannot be imported."""
+        return fun
+
+
 def r_in(td, r_0):
     """Calculate incident countrate given dead time and detected countrate."""
     tau = 1 / r_0

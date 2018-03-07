@@ -327,15 +327,7 @@ def fit_profile(profile, profile_err, debug=False, nperiods=1,
                                       baseline=baseline)
 
 
-def run_folding(file, freq, fdot=0, fddot=0, nbin=16, nebin=16, tref=None,
-                test=False, emin=0, emax=1e32, norm='to1',
-                smooth_window=None, **opts):
-
-    file_label = ''
-    ev = load_events(file)
-    times = ev.time
-    gtis = ev.gti
-    plot_energy = True
+def get_energy_from_events(ev):
     if hasattr(ev, 'energy') and ev.energy is not None:
         energy = ev.energy
         elabel = 'Energy'
@@ -345,6 +337,20 @@ def run_folding(file, freq, fdot=0, fddot=0, nbin=16, nebin=16, tref=None,
     else:
         energy = np.ones_like(times)
         elabel = ''
+    return elabel, energy
+
+
+def run_folding(file, freq, fdot=0, fddot=0, nbin=16, nebin=16, tref=None,
+                test=False, emin=0, emax=1e32, norm='to1',
+                smooth_window=None, **opts):
+
+    file_label = ''
+    ev = load_events(file)
+    times = ev.time
+    gtis = ev.gti
+    plot_energy = True
+    elabel, energy = get_energy_from_events(ev)
+    if elabel == '':
         plot_energy = False
 
     if tref is None:

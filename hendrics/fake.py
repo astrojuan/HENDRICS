@@ -17,13 +17,7 @@ from .base import _empty
 import copy
 
 from .lcurve import lcurve_from_fits
-try:
-    from numba import jit
-except:
-    def jit(fun):
-        """Dummy decorator in case jit cannot be imported."""
-        return fun
-
+from .base import jit
 
 def _paralyzable_dead_time(event_list, dead_time):
     mask = np.ones(len(event_list), dtype=bool)
