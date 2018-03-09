@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 from numba import jit, vectorize
 from stingray.pulse.pulsar import stat
 
-
 """
 prof_n  step0  step1  step2
 0        0+1    0+2    0+4
@@ -263,47 +262,3 @@ def ffa_search(counts, dt, period_min, period_max, nave=1):
             stats = np.concatenate((stats, st))
 
     return bin_periods * dt, stats
-
-
-if __name__ == '__main__':
-    import time
-    from hendrics.efsearch import folding_search
-    from stingray.events import EventList
-    from stingray.lightcurve import Lightcurve
-
-    period = 0.01
-    pmin = 0.009
-    pmax = 0.011
-    dt = 10**int(np.log10(period)) / 256
-    length = 10
-    times = np.arange(0, length, dt)
-
-    flux = 10 + np.cos(2 * np.pi * times / period)
-
-    lc_cont = Lightcurve(times, flux, err_dist='gauss')
-
-    ev = EventList()
-    ev.simulate_times(lc_cont)
-    lc = Lightcurve.make_lightcurve(ev.time, dt=dt, tstart=0, tseg=length)
-
-    t0 = time.time()
-    per, st = ffa_search(lc.counts, dt, pmin, pmax, nave=1)
-    nffa = len(per)
-    t1 = time.time()
-    print("FFA completed in {:.1e} s".format(t1 - t0))
-    t1 = time.time()
-    freqs, stats, _, _ = folding_search(ev, 1/pmax, 1/pmin, oversample=1)
-    nst = len(freqs)
-    t2 = time.time()
-    print("Standard search completed in {:.1e} s".format(t2 - t1))
-
-    plt.figure("Folding search")
-    plt.plot(per, st,
-             label="FFA ({} periods, {:.1e} s)".format(nffa, t1 - t0),
-             zorder=10)
-    plt.plot(1/freqs, stats,
-             label="Standard ({} freqs, {:.1e} s)".format(nst, t2 - t1))
-    plt.axvline(period)
-    plt.legend()
-    plt.show()
-    plt.savefig("FFA.png")
