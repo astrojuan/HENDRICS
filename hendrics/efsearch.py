@@ -2,7 +2,7 @@
 """Search for pulsars."""
 from __future__ import (absolute_import, division, print_function)
 
-from .io import load_events, EFPeriodogram, save_folding, load_folding, \
+from .io import load_events, EFPeriodogram, save_folding, get_file_type, \
     HEN_FILE_EXTENSION
 from .base import hen_root
 from stingray.pulse.search import epoch_folding_search, z_n_search, \
@@ -141,6 +141,10 @@ def folding_search(events, fmin, fmax, step=None,
                    fdotmax=0, fdotstep=None, expocorr=False, **kwargs):
 
     times = (events.time - events.gti[0, 0]).astype(np.float64)
+    weights = 1
+    if hasattr(events, 'counts'):
+        weights = events.counts
+
     length = times[-1]
 
     if step is None:
@@ -159,7 +163,7 @@ def folding_search(events, fmin, fmax, step=None,
         print("Searching {} frequencies and {} fdots".format(len(trial_freqs),
                                                              len(trial_fdots)))
     results = func(times, trial_freqs, fdots=trial_fdots,
-                   expocorr=expocorr, gti=gti, **kwargs)
+                   expocorr=expocorr, gti=gti, weights=weights, **kwargs)
     if len(results) == 2:
         frequencies, stats = results
         return frequencies, stats, step, length
@@ -298,7 +302,7 @@ def _common_main(args, func):
             kwargs = {'nharm': args.N}
             baseline = args.N
             kind = 'Z2n'
-        events = load_events(fname)
+        _, events = get_file_type(fname)
 
         results = \
             folding_search(events, args.fmin, args.fmax, step=args.step,

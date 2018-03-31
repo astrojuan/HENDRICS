@@ -335,7 +335,7 @@ def get_energy_from_events(ev):
         energy = ev.pi
         elabel = 'PI'
     else:
-        energy = np.ones_like(times)
+        energy = np.ones_like(ev.time)
         elabel = ''
     return elabel, energy
 

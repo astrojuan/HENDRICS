@@ -2,7 +2,7 @@ from stingray.lightcurve import Lightcurve
 from stingray.events import EventList
 import numpy as np
 from hendrics.io import save_events, HEN_FILE_EXTENSION, load_folding, \
-    load_events
+    load_events, save_lcurve
 from hendrics.efsearch import main_efsearch, main_zsearch
 from hendrics.efsearch import decide_binary_parameters, folding_orbital_search
 from hendrics.fold import main_fold
@@ -27,6 +27,8 @@ class TestEFsearch():
         cls.counts = \
             100 + 20 * np.cos(2 * np.pi * cls.times * cls.pulse_frequency)
         lc = Lightcurve(cls.times, cls.counts, gti=[[cls.tstart, cls.tend]])
+        cls.lcfile = 'lcurve' + HEN_FILE_EXTENSION
+        save_lcurve(lc, cls.lcfile)
         events = EventList()
         events.simulate_times(lc)
         cls.event_times = events.time
@@ -82,6 +84,18 @@ class TestEFsearch():
                           atol=1/25.25)
         os.unlink(outfile)
 
+    def test_efsearch_from_lc(self):
+        evfile = self.lcfile
+
+        main_efsearch([evfile, '-f', '9.85', '-F', '9.95', '-n', '64',
+                       '--fit-candidates'])
+        outfile = 'lcurve_EF' + HEN_FILE_EXTENSION
+        assert os.path.exists(outfile)
+        plot_folding([outfile], ylog=True)
+        efperiod = load_folding(outfile)
+        assert np.isclose(efperiod.peaks[0], self.pulse_frequency,
+                          atol=1/25.25)
+
     def test_zsearch(self):
         evfile = self.dum
         main_zsearch([evfile, '-f', '9.85', '-F', '9.95', '-n', '64',
@@ -89,6 +103,23 @@ class TestEFsearch():
                       str(self.pulse_frequency),
                       '--dynstep', '5'])
         outfile = 'events_Z2n' + HEN_FILE_EXTENSION
+        assert os.path.exists(outfile)
+        plot_folding([outfile], ylog=True)
+        efperiod = load_folding(outfile)
+        assert np.isclose(efperiod.peaks[0], self.pulse_frequency,
+                          atol=1/25.25)
+        # Defaults to 2 harmonics
+        assert efperiod.N == 2
+        os.unlink(outfile)
+
+    def test_zsearch_from_lc(self):
+        evfile = self.lcfile
+
+        main_zsearch([evfile, '-f', '9.85', '-F', '9.95', '-n', '64',
+                      '--fit-candidates', '--fit-frequency',
+                      str(self.pulse_frequency),
+                      '--dynstep', '5'])
+        outfile = 'lcurve_Z2n' + HEN_FILE_EXTENSION
         assert os.path.exists(outfile)
         plot_folding([outfile], ylog=True)
         efperiod = load_folding(outfile)
