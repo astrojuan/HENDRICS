@@ -19,6 +19,7 @@ if not _ASTROPY_SETUP_:
     from . import exposure
     from . import exvar
     from . import fake
+    from . import ffa
     from . import fspec
     from . import io
     from . import lcurve
