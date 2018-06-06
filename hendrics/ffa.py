@@ -1,6 +1,6 @@
 import numpy as np
 
-from .base import jit, vectorize
+from .base import jit, vectorize, HAS_NUMBA
 from stingray.pulse.pulsar import stat
 
 """
@@ -57,21 +57,24 @@ def stat(profile):
     return sum / err ** 2
 
 
-from numba import types
-from numba.extending import overload_method
+if HAS_NUMBA:
+    from numba import types
+    from numba.extending import overload_method
 
 
-@overload_method(types.Array, 'take')
-def array_take(arr, indices):
-    if isinstance(indices, types.Array):
-        def take_impl(arr, indices):
-            n = indices.shape[0]
-            res = np.empty(n, arr.dtype)
-            for i in range(n):
-                res[i] = arr[indices[i]]
-            return res
+    @overload_method(types.Array, 'take')
+    def array_take(arr, indices):
+        if isinstance(indices, types.Array):
+            def take_impl(arr, indices):
+                n = indices.shape[0]
+                res = np.empty(n, arr.dtype)
+                for i in range(n):
+                    res[i] = arr[indices[i]]
+                return res
 
-        return take_impl
+            return take_impl
+else:
+    array_take = np.take
 
 
 @jit(nopython=True)
