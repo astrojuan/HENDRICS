@@ -7,14 +7,30 @@ from __future__ import (absolute_import, unicode_literals, division,
 import numpy as np
 import logging
 import sys
+import warnings
+
+
+def _generic_dummy_decorator(*args, **kwargs):
+    if len(args) == 1 and len(kwargs) == 0 and callable(args[0]):
+        return args[0]
+    else:
+        def decorator(func):
+            def decorated(*args, **kwargs):
+                return func(*args, **kwargs)
+
+            return decorated
+
+        return decorator
 
 
 try:
-    from numba import jit
-except:
-    def jit(fun):
-        """Dummy decorator in case jit cannot be imported."""
-        return fun
+    from numba import jit, vectorize
+    HAS_NUMBA = True
+except ImportError:
+    warnings.warn("Numba not installed. Faking it")
+
+    jit = vectorize = _generic_dummy_decorator
+    HAS_NUMBA = False
 
 
 def r_in(td, r_0):

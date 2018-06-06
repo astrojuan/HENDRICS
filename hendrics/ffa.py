@@ -1,6 +1,6 @@
 import numpy as np
 
-from numba import jit, vectorize
+from .base import jit, vectorize
 from stingray.pulse.pulsar import stat
 
 """
