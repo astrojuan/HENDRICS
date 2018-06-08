@@ -61,7 +61,6 @@ if HAS_NUMBA:
     from numba import types
     from numba.extending import overload_method
 
-
     @overload_method(types.Array, 'take')
     def array_take(arr, indices):
         if isinstance(indices, types.Array):
